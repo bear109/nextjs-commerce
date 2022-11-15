@@ -4,10 +4,16 @@ import { useEffect, useRef, useState } from 'react';
 import styles from '../styles/Home.module.css';
 
 export default function Home() {
-  const [products, setProducts] = useState<{ id: string; properties: { id: string }[] }[]>([]);
+  // const [products, setProducts] = useState<{ id: string; properties: { id: string }[] }[]>([]);
+  const [products, setProducts] = useState<{ id: string; name: string; createdAt: string }[]>([]);
 
+  // useEffect(() => {
+  //   fetch('/api/get-items')
+  //     .then((res) => res.json())
+  //     .then((data) => setProducts(data.items));
+  // }, []);
   useEffect(() => {
-    fetch('/api/get-items')
+    fetch('/api/get-products')
       .then((res) => res.json())
       .then((data) => setProducts(data.items));
   }, []);
@@ -44,6 +50,13 @@ export default function Home() {
           {products &&
             products.map((item) => (
               <div key={item.id}>
+                {item.name}
+                <span>{item.createdAt}</span>
+              </div>
+            ))}
+          {/* {products &&
+            products.map((item) => (
+              <div key={item.id}>
                 {JSON.stringify(item)}
                 {item.properties &&
                   Object.entries(item.properties).map(([key, value]) => (
@@ -61,7 +74,7 @@ export default function Home() {
                 <br />
                 <br />
               </div>
-            ))}
+            ))} */}
         </div>
       </main>
 

@@ -1,8 +1,9 @@
-// import ImageGallery from 'react-image-gallery';
-
+import CustomEditor from '@components/Editor';
 import Image from 'next/image';
 import Carousel from 'nuka-carousel/lib/carousel';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { EditorState, convertFromRaw, convertToRaw } from 'draft-js';
+import { useRouter } from 'next/router';
 
 const images = [
   {
@@ -37,7 +38,49 @@ const images = [
 
 export default function Products() {
   const [index, setIndex] = useState(0);
-  // return <ImageGallery items={images} />;
+
+  const router = useRouter();
+  const { id: productId } = router.query;
+  const [editorState, setEditorState] = useState<EditorState | undefined>(
+    undefined
+  );
+
+  useEffect(() => {
+    if (productId != null) {
+      fetch(`/api/get-product?id=${productId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.items.contents) {
+            setEditorState(
+              EditorState.createWithContent(
+                convertFromRaw(JSON.parse(data.items.contents))
+              )
+            );
+          } else {
+            setEditorState(EditorState.createEmpty());
+          }
+        });
+    }
+  }, [productId]);
+
+  const handleSave = () => {
+    if (editorState) {
+      fetch('/api/update-product', {
+        method: 'POST',
+        body: JSON.stringify({
+          id: String(productId),
+          contents: JSON.stringify(
+            convertToRaw(editorState.getCurrentContent())
+          ),
+        }),
+      })
+        .then((res) => res.json())
+        .then(() => {
+          alert('success');
+        });
+    }
+  };
+
   return (
     <>
       <Carousel
@@ -65,6 +108,13 @@ export default function Products() {
           </div>
         ))}
       </div>
+      {editorState != null && (
+        <CustomEditor
+          editorState={editorState}
+          onEditorStateChange={setEditorState}
+          onSave={handleSave}
+        />
+      )}
     </>
   );
 }
